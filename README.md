@@ -24,16 +24,22 @@ This project uses machine learning to detect illicit Bitcoin transactions based 
 
 1. **Clone** the repo  
    ```bash
-   git clone https://github.com/yourusername/bitcoin-fraud-detection-ai.git
+   git clone https://github.com/osmonaliev-k/bitcoin-fraud-detection-ai.git
    cd bitcoin-fraud-detection-ai
 
 2. Virtualenv (recommended)
+   ```bash
    python3 -m venv venv
    source venv/bin/activate
 
 3. Install dependencies
-   pip install -r requirements.txt
-   - or install them manually 
+### Option A:
+   ```bash
+   pip3 install -r requirements.txt
+
+### Option B
+   ```bash
+   pip3 install pandas numpy scikit-learn matplotlib seaborn
 
 4. Download the data
    data/elliptic_txs_features.csv
@@ -42,14 +48,15 @@ This project uses machine learning to detect illicit Bitcoin transactions based 
    link: https://www.kaggle.com/datasets/ellipticco/elliptic-data-set
 
 5. Run the full pipeline:
+   ```bash
    python run.py
-   rains Naive Bayes, Decision Tree, GA‑tuned tree, and ensemble
+   Trains Naive Bayes, Decision Tree, GA‑tuned tree, and ensemble
    Prints evaluation for each
    Saves predictions.csv with columns: true_label, nb_pred, dt_pred, ga_pred, ensemble_pred
 
     What’s in predictions.csv:
     Column	        Description
-    true_label	    0 = licit, 1 = illicit
+    true_label	     0 = licit, 1 = illicit
     nb_pred	        Naive Bayes prediction (0 or 1)
     dt_pred	        Decision Tree prediction
     ga_pred	        GA‑optimized tree prediction
