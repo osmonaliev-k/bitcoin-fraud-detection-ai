@@ -33,11 +33,11 @@ This project uses machine learning to detect illicit Bitcoin transactions based 
    source venv/bin/activate
 
 3. Install dependencies
-### Option A:
+
    ```bash
    pip3 install -r requirements.txt
-
-### Option B
+   ```
+   or
    ```bash
    pip3 install pandas numpy scikit-learn matplotlib seaborn
 
@@ -50,6 +50,7 @@ This project uses machine learning to detect illicit Bitcoin transactions based 
 5. Run the full pipeline:
    ```bash
    python run.py
+   ```
    Trains Naive Bayes, Decision Tree, GA‑tuned tree, and ensemble
    Prints evaluation for each
    Saves predictions.csv with columns: true_label, nb_pred, dt_pred, ga_pred, ensemble_pred
