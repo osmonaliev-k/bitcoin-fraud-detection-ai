@@ -51,15 +51,15 @@ This project uses machine learning to detect illicit Bitcoin transactions based 
    ```bash
    python run.py
    ```
-   Trains Naive Bayes, Decision Tree, GA‑tuned tree, and ensemble
-   Prints evaluation for each
-   Saves predictions.csv with columns: true_label, nb_pred, dt_pred, ga_pred, ensemble_pred
+   Trains Naive Bayes, Decision Tree, GA‑tuned tree, and ensemble. Prints evaluation for each. Saves predictions.csv with columns: true_label, nb_pred, dt_pred, ga_pred, ensemble_pred
 
-    What’s in predictions.csv:
-    Column	        Description
-    true_label	     0 = licit, 1 = illicit
-    nb_pred	        Naive Bayes prediction (0 or 1)
-    dt_pred	        Decision Tree prediction
-    ga_pred	        GA‑optimized tree prediction
-    ensemble_pred   Soft‑voting ensemble prediction
+What’s in predictions.csv:
+
+| Column          | Description                                                   |
+|-----------------|---------------------------------------------------------------|
+| `true_label`    | Ground‑truth label (0 = licit transaction, 1 = illicit fraud) |
+| `nb_pred`       | Naive Bayes prediction (0 = licit, 1 = illicit)               |
+| `dt_pred`       | Decision Tree prediction (0 = licit, 1 = illicit)            |
+| `ga_pred`       | GA‑optimized Tree prediction (0 = licit, 1 = illicit)         |
+| `ensemble_pred` | Ensemble prediction (soft‑voting of NB, DT & GA‑DT; 0 or 1)   |    
 
