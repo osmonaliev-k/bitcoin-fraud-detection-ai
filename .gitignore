@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Data files (download separately)
+data/
+
+# Model outputs & logs
+predictions.csv
+
+# IDE / OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+predictions.csv
