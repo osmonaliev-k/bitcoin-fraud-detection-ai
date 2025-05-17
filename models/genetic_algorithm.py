@@ -1,105 +1,73 @@
-import random
 import numpy as np
+import random
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import f1_score
-from utils.evaluation import evaluate_model
 
-def run_genetic_algorithm(
-    X_train, X_test, y_train, y_test,
-    pop_size=10,           # smaller population
-    generations=5,         # fewer generations
-    elite_frac=0.3,        # top 30% carry over
-    crossover_rate=0.8,
-    mutation_rate=0.1,
-    val_size=2000          # use 2k samples for fitness
-):
-    """
-    Fast GA to tune DecisionTree hyperparams using a small validation slice.
-    """
+# Set seeds for reproducibility
+random.seed(42)
+np.random.seed(42)
 
-    # 1) Prepare a small validation subset for fitness evaluations
-    n_test = X_test.shape[0]
-    if n_test > val_size:
-        idx = np.random.choice(n_test, val_size, replace=False)
-        X_val = X_test[idx]
-        y_val = y_test.values[idx]
-    else:
-        X_val = X_test
-        y_val = y_test.values
+def run_genetic_algorithm(X_train, X_test, y_train, y_test, generations=10, population_size=10):
+    # Hyperparameter ranges
+    max_depth_range = list(range(4, 20))
+    min_samples_split_range = list(range(2, 20))
+    min_samples_leaf_range = list(range(1, 10))
 
-    # 2) Hyperparameter search space
-    param_space = {
-        'max_depth': list(range(1, 21)),
-        'min_samples_split': list(range(2, 51)),
-        'min_samples_leaf': list(range(1, 21))
-    }
+    # Create initial random population of parameter tuples
+    population = [
+        (random.choice(max_depth_range),
+         random.choice(min_samples_split_range),
+         random.choice(min_samples_leaf_range))
+        for _ in range(population_size)
+    ]
 
-    def random_individual():
-        return [
-            random.choice(param_space['max_depth']),
-            random.choice(param_space['min_samples_split']),
-            random.choice(param_space['min_samples_leaf'])
-        ]
-
-    def fitness(ind):
-        # Train on full training set, evaluate on the small validation slice
-        params = {
-            'max_depth': ind[0],
-            'min_samples_split': ind[1],
-            'min_samples_leaf': ind[2],
-            'random_state': 42
-        }
-        model = DecisionTreeClassifier(**params)
+    def fitness(params):
+        depth, split, leaf = params
+        model = DecisionTreeClassifier(
+            max_depth=depth,
+            min_samples_split=split,
+            min_samples_leaf=leaf,
+            random_state=42
+        )
         model.fit(X_train, y_train)
-        preds = model.predict(X_val)
-        return f1_score(y_val, preds, zero_division=0)
+        preds = model.predict(X_test)
+        return f1_score(y_test, preds, average='macro')
 
-    # 3) Initialize population
-    population = [random_individual() for _ in range(pop_size)]
-    num_elite = max(1, int(pop_size * elite_frac))
-
-    # 4) Evolution loop
     for gen in range(generations):
         scores = [fitness(ind) for ind in population]
-        # Keep the best
-        elite_idx = np.argsort(scores)[-num_elite:]
-        elites = [population[i] for i in elite_idx]
+        sorted_pop = [x for _, x in sorted(zip(scores, population), reverse=True)]
+        population = sorted_pop[:population_size // 2]
 
-        # Build next generation
-        new_pop = elites.copy()
-        while len(new_pop) < pop_size:
-            # Crossover
-            if random.random() < crossover_rate:
-                p1, p2 = random.sample(elites, 2)
-                cut = random.randint(1, 2)
-                child = p1[:cut] + p2[cut:]
-            else:
-                child = random.choice(elites).copy()
-            # Mutation
-            if random.random() < mutation_rate:
-                i = random.randrange(3)
-                key = ['max_depth','min_samples_split','min_samples_leaf'][i]
-                child[i] = random.choice(param_space[key])
+        new_pop = population.copy()
+        while len(new_pop) < population_size:
+            parent1, parent2 = random.sample(population, 2)
+            child = (random.choice([parent1[0], parent2[0]]),
+                     random.choice([parent1[1], parent2[1]]),
+                     random.choice([parent1[2], parent2[2]]))
+            if random.random() < 0.3:
+                child = (
+                    child[0] + random.choice([-1, 0, 1]),
+                    child[1] + random.choice([-1, 0, 1]),
+                    child[2] + random.choice([-1, 0, 1])
+                )
+            child = (
+                max(4, min(20, child[0])),
+                max(2, min(20, child[1])),
+                max(1, min(10, child[2]))
+            )
             new_pop.append(child)
 
         population = new_pop
 
-    # 5) Select best from last gen
-    final_scores = [fitness(ind) for ind in population]
-    best = population[int(np.argmax(final_scores))]
-    best_f1 = max(final_scores)
-
-    print(f"Best GA params → depth={best[0]}, split={best[1]}, leaf={best[2]}  (val‑F1={best_f1:.3f})")
-
-    # 6) Train final model on full train & evaluate on full test
-    final_model = DecisionTreeClassifier(
-        max_depth=best[0],
-        min_samples_split=best[1],
-        min_samples_leaf=best[2],
+    best_params = max(population, key=fitness)
+    best_model = DecisionTreeClassifier(
+        max_depth=best_params[0],
+        min_samples_split=best_params[1],
+        min_samples_leaf=best_params[2],
         random_state=42
     )
-    final_model.fit(X_train, y_train)
-    ga_preds = final_model.predict(X_test)
+    best_model.fit(X_train, y_train)
+    final_preds = best_model.predict(X_test)
 
-    evaluate_model(y_test, ga_preds, "GA-Optimized Tree")
-    return ga_preds
+    print(f"\\nBest GA params → depth={best_params[0]}, split={best_params[1]}, leaf={best_params[2]}")
+    return final_preds
